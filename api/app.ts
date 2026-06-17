@@ -14,6 +14,7 @@ import analysisRoutes from './routes/analysis.js'
 import metaRoutes from './routes/meta.js'
 import reportRoutes from './routes/reports.js'
 import monitorRoutes from './routes/monitors.js'
+import { startMonitorScheduler } from './services/monitorService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -22,6 +23,12 @@ dotenv.config()
 
 initDatabase()
 generateMockData()
+
+try {
+  startMonitorScheduler()
+} catch (error) {
+  console.error('Failed to start monitor scheduler:', error)
+}
 
 const app: express.Application = express()
 

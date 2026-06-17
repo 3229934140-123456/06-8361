@@ -95,6 +95,23 @@ export interface MonitorRule {
   createdAt: string;
 }
 
+export interface MonitorAlert {
+  id: string;
+  monitorId: string;
+  funnelId: string;
+  funnelName: string;
+  stepIndex: number;
+  stepName: string;
+  currentRate: number;
+  previousRate: number;
+  dropPercentage: number;
+  threshold: number;
+  triggeredAt: string;
+  notifiedEmails: string[];
+  status: 'pending' | 'sent' | 'failed';
+  message?: string;
+}
+
 export interface EventInfo {
   name: string;
   count: number;

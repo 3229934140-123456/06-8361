@@ -81,6 +81,27 @@ export function initDatabase() {
       FOREIGN KEY (funnel_id) REFERENCES funnels(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS monitor_alerts (
+      id TEXT PRIMARY KEY,
+      monitor_id TEXT NOT NULL,
+      funnel_id TEXT NOT NULL,
+      funnel_name TEXT NOT NULL,
+      step_index INTEGER NOT NULL,
+      step_name TEXT NOT NULL,
+      current_rate REAL NOT NULL,
+      previous_rate REAL NOT NULL,
+      drop_percentage REAL NOT NULL,
+      threshold REAL NOT NULL,
+      triggered_at TEXT NOT NULL,
+      notified_emails TEXT NOT NULL,
+      status TEXT NOT NULL,
+      message TEXT,
+      FOREIGN KEY (monitor_id) REFERENCES monitor_rules(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_monitor_alerts_monitor ON monitor_alerts(monitor_id);
+    CREATE INDEX IF NOT EXISTS idx_monitor_alerts_time ON monitor_alerts(triggered_at);
+
     CREATE INDEX IF NOT EXISTS idx_event_logs_user ON event_logs(user_id);
     CREATE INDEX IF NOT EXISTS idx_event_logs_event ON event_logs(event_name);
     CREATE INDEX IF NOT EXISTS idx_event_logs_time ON event_logs(event_time);

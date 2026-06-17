@@ -5,6 +5,8 @@ import type {
   BehaviorPath,
   Report,
   MonitorRule,
+  MonitorAlert,
+  MonitorCheckResult,
   EventInfo,
   AttributeDimension,
 } from '../types';
@@ -131,4 +133,26 @@ export const monitorApi = {
   delete: (id: string) => request<{ success: boolean }>(`/monitors/${id}`, { method: 'DELETE' }),
   toggle: (id: string) =>
     request<{ enabled: boolean }>(`/monitors/${id}/toggle`, { method: 'POST' }),
+  check: (id: string, forceEmail?: string[]) =>
+    request<MonitorCheckResult>(`/monitors/${id}/check`, {
+      method: 'POST',
+      body: JSON.stringify({ forceEmail }),
+    }),
+  checkAll: () =>
+    request<{ total: number; triggered: number; results: MonitorCheckResult[] }>('/monitors/check-all', {
+      method: 'POST',
+    }),
+  getAlerts: (limit?: number) =>
+    request<MonitorAlert[]>(`/monitors/alerts${limit ? `?limit=${limit}` : ''}`),
+  getAlertsByMonitor: (monitorId: string, limit?: number) =>
+    request<MonitorAlert[]>(`/monitors/${monitorId}/alerts${limit ? `?limit=${limit}` : ''}`),
+  testEmail: (to: string) =>
+    request<{ success: boolean; message: string }>('/monitors/test-email', {
+      method: 'POST',
+      body: JSON.stringify({ to }),
+    }),
+  testConnection: () =>
+    request<{ success: boolean; message: string }>('/monitors/test-connection', {
+      method: 'POST',
+    }),
 };

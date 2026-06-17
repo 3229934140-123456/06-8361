@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db/database.js';
 import { v4 as uuidv4 } from 'uuid';
-import type { MonitorRule } from '../types/index.js';
+import { checkMonitorRule, getAlerts, checkAllMonitors } from '../services/monitorService.js';
+import { testEmailConnection, sendMonitorAlertEmail } from '../services/emailService.js';
+import type { MonitorRule, MonitorAlert } from '../types/index.js';
 
 const router = Router();
 
@@ -172,6 +174,120 @@ router.post('/:id/toggle', (req: Request, res: Response) => {
   db.prepare('UPDATE monitor_rules SET enabled = ? WHERE id = ?').run(newEnabled, id);
   
   res.json({ enabled: newEnabled === 1 });
+});
+
+router.post('/check-all', async (_req: Request, res: Response) => {
+  try {
+    const results = await checkAllMonitors();
+    const triggeredCount = results.filter(r => r.triggered).length;
+    res.json({
+      total: results.length,
+      triggered: triggeredCount,
+      results,
+    });
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+router.post('/:id/check', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { forceEmail } = req.body as { forceEmail?: string[] };
+    const db = getDatabase();
+    
+    const row = db.prepare(`
+      SELECT id, funnel_id, funnel_name, step_index, step_name, threshold, frequency, enabled, notify_emails, created_at
+      FROM monitor_rules
+      WHERE id = ?
+    `).get(id) as {
+      id: string;
+      funnel_id: string;
+      funnel_name: string;
+      step_index: number;
+      step_name: string;
+      threshold: number;
+      frequency: string;
+      enabled: number;
+      notify_emails: string;
+      created_at: string;
+    } | undefined;
+
+    if (!row) {
+      return res.status(404).json({ error: 'Monitor rule not found' });
+    }
+
+    const rule: MonitorRule = {
+      id: row.id,
+      funnelId: row.funnel_id,
+      funnelName: row.funnel_name,
+      stepIndex: row.step_index,
+      stepName: row.step_name,
+      threshold: row.threshold,
+      frequency: row.frequency as 'daily' | 'hourly',
+      enabled: row.enabled === 1,
+      notifyEmails: JSON.parse(row.notify_emails),
+      createdAt: row.created_at,
+    };
+
+    const result = await checkMonitorRule(rule, forceEmail);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+router.get('/alerts', (req: Request, res: Response) => {
+  try {
+    const { limit = '50' } = req.query;
+    const alerts = getAlerts(undefined, parseInt(limit as string));
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+router.get('/:id/alerts', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { limit = '50' } = req.query;
+    const alerts = getAlerts(id, parseInt(limit as string));
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+router.post('/test-email', async (req: Request, res: Response) => {
+  try {
+    const { to } = req.body as { to: string };
+    if (!to) {
+      return res.status(400).json({ error: 'Recipient email is required' });
+    }
+
+    const result = await sendMonitorAlertEmail([to], {
+      funnelName: '测试漏斗',
+      stepName: '测试步骤',
+      currentRate: 45.67,
+      previousRate: 60.23,
+      dropPercentage: 14.56,
+      threshold: 10,
+      triggeredAt: new Date().toISOString(),
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+router.post('/test-connection', async (_req: Request, res: Response) => {
+  try {
+    const result = await testEmailConnection();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
 });
 
 export default router;

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Funnel, FunnelAnalysis, Report, MonitorRule, EventInfo, AttributeDimension } from '../types';
+import type { Funnel, FunnelAnalysis, Report, MonitorRule, MonitorAlert, EventInfo, AttributeDimension, MonitorCheckResult } from '../types';
 import { funnelApi, analysisApi, metaApi, reportApi, monitorApi } from '../services/api';
 
 interface AppState {
@@ -8,6 +8,7 @@ interface AppState {
   funnelAnalysis: FunnelAnalysis | null;
   reports: Report[];
   monitors: MonitorRule[];
+  monitorAlerts: MonitorAlert[];
   events: EventInfo[];
   attributes: AttributeDimension[];
   loading: boolean;
@@ -43,6 +44,8 @@ interface AppState {
   createMonitor: (data: Omit<MonitorRule, 'id' | 'createdAt' | 'enabled'>) => Promise<void>;
   toggleMonitor: (id: string) => Promise<void>;
   deleteMonitor: (id: string) => Promise<void>;
+  checkMonitor: (id: string, forceEmail?: string[]) => Promise<MonitorCheckResult>;
+  loadAlerts: (limit?: number) => Promise<void>;
   
   loadMeta: () => Promise<void>;
 }
@@ -53,6 +56,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   funnelAnalysis: null,
   reports: [],
   monitors: [],
+  monitorAlerts: [],
   events: [],
   attributes: [],
   loading: false,
@@ -191,6 +195,26 @@ export const useAppStore = create<AppState>((set, get) => ({
       }));
     } catch (error) {
       set({ error: (error as Error).message, loading: false });
+    }
+  },
+
+  checkMonitor: async (id: string, forceEmail?: string[]) => {
+    try {
+      const result = await monitorApi.check(id, forceEmail);
+      await get().loadAlerts();
+      return result;
+    } catch (error) {
+      set({ error: (error as Error).message });
+      throw error;
+    }
+  },
+
+  loadAlerts: async (limit?: number) => {
+    try {
+      const alerts = await monitorApi.getAlerts(limit);
+      set({ monitorAlerts: alerts });
+    } catch (error) {
+      set({ error: (error as Error).message });
     }
   },
 

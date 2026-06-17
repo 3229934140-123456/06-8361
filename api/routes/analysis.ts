@@ -30,7 +30,7 @@ function getFunnelSteps(db: ReturnType<typeof getDatabase>, funnelId: string) {
   `).all(funnelId) as Array<{ id: string; name: string; event_name: string; order_index: number }>;
 }
 
-function calculateFunnelAnalysis(
+export function calculateFunnelAnalysis(
   db: ReturnType<typeof getDatabase>,
   funnelId: string,
   start: Date,
