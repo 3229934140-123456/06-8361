@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg font-medium
+           hover:from-primary-700 hover:to-primary-600 transition-all duration-200
+           shadow-md hover:shadow-lg active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-white text-primary-700 border border-primary-200 rounded-lg font-medium
+           hover:bg-primary-50 hover:border-primary-300 transition-all duration-200;
+  }
+
+  .btn-accent {
+    @apply px-4 py-2 bg-gradient-to-r from-accent-500 to-accent-400 text-white rounded-lg font-medium
+           hover:from-accent-600 hover:to-accent-500 transition-all duration-200
+           shadow-md hover:shadow-lg active:scale-[0.98];
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-soft border border-neutral-100 p-6 transition-all duration-300
+           hover:shadow-medium;
+  }
+
+  .card-dashboard {
+    @apply bg-white rounded-2xl shadow-soft border border-neutral-100 p-6 transition-all duration-300;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-neutral-200 rounded-lg text-neutral-700
+           focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500
+           transition-all duration-200 placeholder:text-neutral-400;
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg text-neutral-300
+           hover:bg-white/10 hover:text-white transition-all duration-200;
+  }
+
+  .sidebar-link-active {
+    @apply bg-white/15 text-white font-medium;
+  }
+
+  .stat-card {
+    @apply relative overflow-hidden rounded-2xl p-6 bg-white shadow-soft border border-neutral-100
+           transition-all duration-300 hover:shadow-medium;
+  }
+
+  .funnel-step {
+    @apply relative flex items-center justify-center text-white font-semibold
+           transition-all duration-500 ease-out;
+  }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 数字滚动动画 */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.count-animate {
+  animation: countUp 0.6s ease-out;
+}
+
+/* 渐变文字 */
+.gradient-text {
+  background: linear-gradient(135deg, #1e3a5f 0%, #3a6cf5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
